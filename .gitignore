@@ -1,0 +1,7 @@
+venv
+test
+*__pycache__*
+data/*.xls
+data/*.xlsm
+data/*.xlsx
+*.ipynb

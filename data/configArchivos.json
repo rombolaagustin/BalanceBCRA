@@ -1,0 +1,10 @@
+{
+    "balance_sheet": {
+        "url": "https://www.bcra.gob.ar/Pdfs/PublicacionesEstadisticas/series.xlsm",
+        "filename": "data/series.xlsm"
+    },
+    "cer": {
+        "url": "https://www.bcra.gob.ar/Pdfs/PublicacionesEstadisticas/diar_cer.xls",
+        "filename": "data/diar_cer.xls"
+    }
+}

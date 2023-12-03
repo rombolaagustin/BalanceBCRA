@@ -10,6 +10,7 @@ def downloadFile(url: str, filename: str, hours: float, return_msg=False):
         url (str): URL to download
         filename (str): filename to save
         hours (float): hours to download 
+        return_msg (bool): return message
     """
     try: 
         creation_date = os.path.getctime(filename)
@@ -28,3 +29,17 @@ def downloadFile(url: str, filename: str, hours: float, return_msg=False):
         request.urlretrieve(url, filename)
         if return_msg:
             return 'Descargado correctamente'
+
+
+def selectElementsDict(d: dict, elements: list, keyOrValue = True):
+    ad = {v:k for k, v in d.items()}
+    try: 
+        # keyOrValue = True --> elements are keys
+        if keyOrValue:
+            r = [d[e] for e in elements]
+        # keyOrValue = False --> elements are values
+        else:
+            r = [ad[e] for e in elements]
+        return r
+    except:
+        return []

@@ -107,26 +107,27 @@ class dataContent():
         self.stocks = self.stocks.rename(columns=rename_cols)
         self.stocks = self.stocks.round(2)
 
+    def getRangeDate(self):
+        return self.stocks.index.min().date(), self.stocks.index.max().date()
+
     def getStocks(
         self, 
         where:list, 
         sector:list, 
         tipo:list, 
         currency:list,
-        fecha_base=None,
+        filtro_fecha=dict(),
+        base_100=False,
         ):
         listColumns = list()
         for col in self.stocks.columns:
             r = col.split('_')
             if r[0] in where and r[2] in sector and r[3] in tipo and r[4] in currency:
                 listColumns.append(col)
-        if fecha_base != None:
-            filter_base = self.stocks[listColumns]
-            fecha_base = pd.to_datetime(fecha_base)
-            for i, col in enumerate(filter_base.columns):
-                valor = filter_base[filter_base.index==fecha_base][col].values
-                if len(valor) > 0:
-                    filter_base[col] = (filter_base[col]/valor)*100
-            return filter_base.round(3)
-        else:
-            return self.stocks[listColumns]
+        df = self.stocks[listColumns]
+        if 'start' in filtro_fecha and 'end' in filtro_fecha:
+            df = df[(df.index >= filtro_fecha['start']) & (df.index <= filtro_fecha['end'])]
+        if base_100:
+            for col in df.columns:
+                df[col] = 100*(df[col]/df[col].values[0])
+        return df

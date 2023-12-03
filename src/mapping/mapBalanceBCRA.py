@@ -6,26 +6,35 @@
 Ejemplo: baseMonetaria_varDiaria_ars
 """
 
-# Tipos de columna
-TIPOS_COLUMNAS = [
-    'varDiaria',
-    'stock',
-    'indice',
-    'tasa',
-]
+# Tipos 
+TIPOS = {
+    'varDiaria': 'Variaciones Diarias',
+    'stock': 'Stocks',
+    'indice': 'Índices',
+    'tasa': 'Tasa',
+}
 
-# Monedas 
-MONEDAS = [
-    'ars',
-    'usd',
-]
+# Currencies
+CURRENCIES = {
+    'ars': '(ARS) Pesos Argentinos',
+    'usd': '(USD) Dólares Americanos',
+}
 
 # Sector
-SECTORES = [
-    'pub',
-    'priv',
-    'total',
-]
+SECTORS = {
+    'pub': 'Sector Público',
+    'priv': 'Sector Privado',
+    'total': 'Total',
+}
+
+# Fuente
+FUENTE = {
+    'baseMonetaria': 'Base Monetaria', 
+    'reservas': 'Reservas Internacionales', 
+    'depositos': 'Depósitos', 
+    'prestamos': 'Préstamos', 
+    'instrumentosBCRA': 'Instrumentos del BCRA',
+}
 
 # Hojas del Archivo
 SHEET_NAMES = {

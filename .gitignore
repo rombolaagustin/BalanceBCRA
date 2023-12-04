@@ -5,3 +5,5 @@ data/*.xls
 data/*.xlsm
 data/*.xlsx
 *.ipynb
+.DS_Store
+*.~lock*

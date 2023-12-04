@@ -46,20 +46,22 @@ for k in files.keys():
 
 # Carga el contenido en Cache
 @st.cache_data(show_spinner=False)
-def cargarContenido(filename: str):
-    return dataContent(filename)
+def cargarContenido(filename: str, filename_cer = ''):
+    return dataContent(filename, filename_cer)
 
 with st.spinner('Procesando la hoja de balance del BCRA...'):
-    data = cargarContenido(files['balance_sheet']['filename'])
+    data = cargarContenido(files['balance_sheet']['filename'], files['cer']['filename'])
+
+minDate, maxDate = data.getRangeDate()
 
 # Se genera la sidebar
 st.sidebar.header("Secciones")
-st.sidebar.write('Información hasta ', data.getRangeDate()[1])
+st.sidebar.write('Información hasta ', maxDate)
 
 # 1) SECCION - VISUALIZADOR DE STOCKS
 st.header('1. Stocks')
 with st.container(border=True):
-    whereSel = st.multiselect('Fuente de información', FUENTE.values(), default='Base Monetaria')
+    whereSel = st.multiselect('Fuente de información', FUENTE.values(), default=['Base Monetaria', 'Indices'])
     sectorSel = st.multiselect('Sector', SECTORS.values(), default='Total')
     currencySel = st.multiselect('Moneda', CURRENCIES.values(), default='(ARS) Pesos Argentinos')
     customStocks = {
@@ -71,27 +73,63 @@ with st.container(border=True):
     #st.divider()
 
     # Filtro de fechas
-    enable_dates = st.checkbox("Filtar por fecha")
+    enable_dates = st.checkbox("Filtar por fecha", value=False)
     filtro_fecha = dict()
     # Si el checkbox está marcado, mostrar el selector de fechas
     if enable_dates:
         customFecha = st.selectbox('Filtro de fechas:', FILTROS_TEMPORALES.keys())
         if customFecha == 'Personalizada':
             with st.container(border=True):
-                startDate = st.date_input("Inicio", data.getRangeDate()[0])
-                endDate = st.date_input("Fin", data.getRangeDate()[1])
+                startDate = st.date_input(
+                    label="Inicio", 
+                    value=minDate, 
+                    min_value=minDate,
+                    max_value=maxDate,
+                    )
+                endDate = st.date_input(
+                    label="Fin", 
+                    value=maxDate, 
+                    min_value=minDate,
+                    max_value=maxDate,
+                    )
                 filtro_fecha = {'start': pd.to_datetime(startDate), 'end': pd.to_datetime(endDate)}
         else:
             filtro_fecha = FECHAS_ESPECIALES[FILTROS_TEMPORALES[customFecha]]
     #st.divider()
     
     # Base 100
-    base_100 = st.checkbox("Base 100")
+    base_100 = st.checkbox("Base 100", value=False)
 
 # Data de Stocks
-st.dataframe(
-    data.getStocks(**customStocks, filtro_fecha=filtro_fecha, base_100=base_100)
-)
+df_stocks = data.getStocks(**customStocks, filtro_fecha=filtro_fecha, base_100=base_100)
+st.dataframe(df_stocks)
+# Graficador
+show_chart = st.checkbox('Graficar', value=True)
+
+with st.container(border=True):
+    
+    # Verificar si se debe mostrar el gráfico
+    if show_chart:
+        # Multiselect para elegir las columnas a graficar
+        sel_cols = st.multiselect('Selecciona las columnas', df_stocks.columns)
+        use_CER = st.checkbox('Deflactar usando CER', value=False)
+        if sel_cols:
+            if use_CER and 'indices_CER_total_indice_ars' in df_stocks.columns:
+                df_stocks_plot = df_stocks.copy()
+                for colPlot in df_stocks_plot.columns:
+                    if 'ars' in colPlot: # Solo lo nominado en ars
+                        df_stocks_plot[colPlot] = (df_stocks_plot[colPlot]/df_stocks_plot['indices_CER_total_indice_ars'])*df_stocks_plot['indices_CER_total_indice_ars'].max()
+            else:
+                df_stocks_plot = df_stocks.copy()
+            st.subheader('Gráfico')
+            st.line_chart(
+                data=df_stocks_plot,
+                x=None, # None use the index
+                y=sel_cols,
+            )
+        else:
+            st.warning('Se debe seleccionar al menos una serie para graficar')
+    
 
 # DISCLAIMER
 st.caption('_Toda la información que se muestra proviene exclusivamente de la hoja del balance del Banco Central de la República Argentina._')

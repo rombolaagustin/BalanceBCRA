@@ -58,7 +58,7 @@ class dataContent():
     def __setDescript(self):
         self.descript = descriptObj()
         
-    def __init__(self, filename: str):
+    def __init__(self, filename: str, filename_cer: str = ''):
         # Se inicializan los atributos ocultos
         self.__data_raw = dict()
         self.__filename = filename
@@ -101,11 +101,29 @@ class dataContent():
             else:
                 usefulCols = self.descript.getColumnsFull(data_name, ['stock', 'indice'])
                 self.stocks = self.stocks.merge(self.__data_raw[data_name][usefulCols].resample('1D').interpolate(), left_index=True, right_index=True, how='left')
+        
+        
         # Rename columns in stocks
         rename_cols = {c: self.descript.getFullNameFromRealName([c])[0] for c in self.stocks.columns}
         print(rename_cols)
         self.stocks = self.stocks.rename(columns=rename_cols)
         self.stocks = self.stocks.round(2)
+        
+        # Agrega el CER
+        if len(filename_cer) > 0:
+            df_cer = pd.read_excel(
+                    engine='xlrd',
+                    io='data/diar_cer.xls',
+                    header=1,
+                    skiprows=25,
+                    )    
+            df_cer['cd_serie'] = pd.to_datetime(df_cer['cd_serie'], format='%d/%m/%Y')
+            df_cer.index = df_cer['cd_serie']
+            df_cer = df_cer.rename(columns={3540: 'indices_CER_total_indice_ars', 'cd_serie': 'date'})
+            del df_cer['date']
+            print(df_cer.columns)
+            self.stocks = self.stocks.merge(df_cer, left_index=True, right_index=True, how='left')
+
 
     def getRangeDate(self):
         return self.stocks.index.min().date(), self.stocks.index.max().date()

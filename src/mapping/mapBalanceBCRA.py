@@ -34,6 +34,7 @@ FUENTE = {
     'depositos': 'Depósitos', 
     'prestamos': 'Préstamos', 
     'instrumentosBCRA': 'Instrumentos del BCRA',
+    'indices': 'Indices',
 }
 
 # Hojas del Archivo

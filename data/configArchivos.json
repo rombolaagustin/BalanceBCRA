@@ -1,10 +1,17 @@
 {
     "balance_sheet": {
         "url": "https://www.bcra.gob.ar/Pdfs/PublicacionesEstadisticas/series.xlsm",
-        "filename": "data/series.xlsm"
+        "filename": "data/series.xlsm",
+        "time_to_download": 1
     },
     "cer": {
         "url": "https://www.bcra.gob.ar/Pdfs/PublicacionesEstadisticas/diar_cer.xls",
-        "filename": "data/diar_cer.xls"
+        "filename": "data/diar_cer.xls",
+        "time_to_download": 24
+    },
+    "itcrm": {
+        "url": "https://www.bcra.gob.ar/Pdfs/PublicacionesEstadisticas/ITCRMSerie.xlsx",
+        "filename": "data/ITCRMSerie.xlsx",
+        "time_to_download": 24
     }
 }

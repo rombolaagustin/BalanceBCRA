@@ -30,6 +30,7 @@ SECTORS = {
 # Fuente
 FUENTE = {
     'baseMonetaria': 'Base Monetaria', 
+    'agregadosMonetarios': 'Agregados Monetarios',
     'reservas': 'Reservas Internacionales', 
     'depositos': 'Depósitos', 
     'prestamos': 'Préstamos', 

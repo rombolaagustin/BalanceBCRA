@@ -116,11 +116,12 @@ with st.container(border=True):
         if sel_cols:
             if use_CER and 'indices_CER_total_indice_ars' in df_stocks.columns:
                 df_stocks_plot = df_stocks.copy()
-                for colPlot in df_stocks_plot.columns:
-                    if 'ars' in colPlot: # Solo lo nominado en ars
+                for colPlot in sel_cols:
+                    if colPlot.split('_')[4] == 'ars': # Solo lo nominado en ars
+                        
                         df_stocks_plot[colPlot] = (df_stocks_plot[colPlot]/df_stocks_plot['indices_CER_total_indice_ars'])*df_stocks_plot['indices_CER_total_indice_ars'].max()
             else:
-                df_stocks_plot = df_stocks.copy()
+                df_stocks_plot = df_stocks[sel_cols].copy()
             st.subheader('Gráfico')
             st.line_chart(
                 data=df_stocks_plot,

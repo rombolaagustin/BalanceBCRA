@@ -14,17 +14,15 @@ import pandas as pd
 from src.funciones import downloadFile
 from src.funciones import selectElementsDict
 from src.dataContent import dataContent
+
+
+# CONSTANTES
 from src.mapping.mapBalanceBCRA import SHEET_NAMES
 from src.mapping.mapBalanceBCRA import TIPOS
 from src.mapping.mapBalanceBCRA import CURRENCIES
 from src.mapping.mapBalanceBCRA import SECTORS
 from src.mapping.mapBalanceBCRA import FUENTE
 from src.mapping.filtrosTemporales import FILTROS_TEMPORALES, FECHAS_ESPECIALES
-
-
-# CONSTANTES
-
-HOURS_TO_DOWNLOAD = 1
 
 # Config de la pagina
 st.set_page_config(page_title="Balance del BCRA")
@@ -36,13 +34,15 @@ with open('data/configArchivos.json', 'r') as file:
     files = json.load(file)
 
 ### DESCARGA AUTOMATICA DE LOS ARCHIVOS DEL BCRA ###
-for k in files.keys():
-    downloadFile(
-        url=files[k]['url'],
-        filename=files[k]['filename'],
-        hours=HOURS_TO_DOWNLOAD,
-        return_msg=False,
-        )
+@st.cache_resource
+def downloadAllFiles(files: dict):
+    for k in files.keys():
+        downloadFile(
+            url=files[k]['url'],
+            filename=files[k]['filename'],
+            hours=files[k]['time_to_download'],
+            return_msg=False,
+            )
 
 # Carga el contenido en Cache
 @st.cache_data(show_spinner=False)
@@ -50,6 +50,7 @@ def cargarContenido(filename: str, filename_cer = ''):
     return dataContent(filename, filename_cer)
 
 with st.spinner('Procesando la hoja de balance del BCRA...'):
+    downloadAllFiles(files)
     data = cargarContenido(files['balance_sheet']['filename'], files['cer']['filename'])
 
 minDate, maxDate = data.getRangeDate()

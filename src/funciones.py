@@ -21,7 +21,7 @@ def downloadFile(url: str, filename: str, hours: float, return_msg=False):
             if return_msg:
                 return 'Descargado correctamente'
         else:
-            print('OK: File is up to date')
+            print(f'OK: File {filename} is up to date')
             if return_msg:
                 return 'Archivo ya actualizado'
     except:

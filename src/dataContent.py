@@ -4,9 +4,6 @@ import warnings
 from .mapping.mapBalanceBCRA import COLUMNS_NAMES
 from .mapping.mapBalanceBCRA import SHEET_NAMES
 
-# Desactivar temporalmente todas las advertencias de pandas
-warnings.filterwarnings("ignore", category=UserWarning, module="pandas")
-
 class descriptObj():
     def __init__(self):
         aux = list()
@@ -86,8 +83,10 @@ class dataContent():
                     self.__data_raw[data_name][col_name] = pd.to_numeric(self.__data_raw[data_name][col_name].replace(',', '', regex=True), errors='coerce')
                     if pd.isna(self.__data_raw[data_name][col_name].iloc[0]):
                         # replace the first NaN value with 0
-                        self.__data_raw[data_name][col_name].iloc[0] = 0
-                    self.__data_raw[data_name][col_name] = self.__data_raw[data_name][col_name].fillna(method='ffill')
+                        #self.__data_raw[data_name][col_name].iloc[0] = 0
+                        self.__data_raw[data_name].loc[0, (data_name, col_name)] = 0
+                    #self.__data_raw[data_name][col_name] = self.__data_raw[data_name][col_name].fillna(method='ffill')
+                    self.__data_raw[data_name][col_name] = self.__data_raw[data_name][col_name].ffill()
 
             # Filling data
             self.__data_raw[data_name].index = self.__data_raw[data_name]['date']
@@ -105,12 +104,12 @@ class dataContent():
         
         # Rename columns in stocks
         rename_cols = {c: self.descript.getFullNameFromRealName([c])[0] for c in self.stocks.columns}
-        print(rename_cols)
         self.stocks = self.stocks.rename(columns=rename_cols)
         self.stocks = self.stocks.round(2)
         
         # Agrega el CER
         if len(filename_cer) > 0:
+            print(f'Procesando CER --> indices_CER')
             df_cer = pd.read_excel(
                     engine='xlrd',
                     io='data/diar_cer.xls',
@@ -121,7 +120,6 @@ class dataContent():
             df_cer.index = df_cer['cd_serie']
             df_cer = df_cer.rename(columns={3540: 'indices_CER_total_indice_ars', 'cd_serie': 'date'})
             del df_cer['date']
-            print(df_cer.columns)
             self.stocks = self.stocks.merge(df_cer, left_index=True, right_index=True, how='left')
 
         # Genera las columnas especiales
@@ -133,6 +131,7 @@ class dataContent():
         self.stocks['agregadosMonetarios_pasivosRemuneradores_total_stock_ars'] = self.stocks['instrumentosBCRA_pasesPasivos_total_stock_ars'] + self.stocks['instrumentosBCRA_pasesPasivosFCI_total_stock_ars'] + self.stocks['instrumentosBCRA_leliq_total_stock_ars'] + self.stocks['instrumentosBCRA_lebac_total_stock_ars'] + self.stocks['agregadosMonetarios_ledivUSDexpEnARS_total_stock_ars']
         self.stocks['agregadosMonetarios_baseMonetariaAmpliada_total_stock_ars'] = self.stocks['baseMonetaria_total_total_stock_ars'] + self.stocks['agregadosMonetarios_pasivosRemuneradores_total_stock_ars']
         self.stocks['agregadosMonetarios_baseMonetariaVSPasivosRemunerados_total_indice_ars'] = self.stocks['agregadosMonetarios_pasivosRemuneradores_total_stock_ars'] / self.stocks['baseMonetaria_total_total_stock_ars']
+        self.stocks['agregadosMonetarios_m3_total_stock_ars'] = self.stocks['baseMonetaria_total_total_stock_ars'] + self.stocks['depositos_depositos_total_stock_ars'] 
     def getRangeDate(self):
         return self.stocks.index.min().date(), self.stocks.index.max().date()
 

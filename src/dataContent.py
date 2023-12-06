@@ -99,13 +99,25 @@ class dataContent():
                 self.stocks = self.__data_raw['baseMonetaria'][usefulCols].resample('1D').interpolate(method='linear')
             else:
                 usefulCols = self.descript.getColumnsFull(data_name, ['stock', 'indice'])
-                self.stocks = self.stocks.merge(self.__data_raw[data_name][usefulCols].resample('1D').interpolate(), left_index=True, right_index=True, how='left')
-        
-        
+                if len(usefulCols) > 0:
+                    self.stocks = self.stocks.merge(self.__data_raw[data_name][usefulCols].resample('1D').interpolate(), left_index=True, right_index=True, how='left')
+            # VAR_DIARIA
+            if data_name == 'baseMonetaria':
+                usefulCols = self.descript.getColumnsFull(data_name, ['varDiaria'])
+                self.var_diaria = self.__data_raw['baseMonetaria'][usefulCols] #.resample('1D')
+            else:
+                usefulCols = self.descript.getColumnsFull(data_name, ['varDiaria'])
+                if len(usefulCols) > 0:
+                    self.var_diaria = self.var_diaria.merge(self.__data_raw[data_name][usefulCols], left_index=True, right_index=True, how='left')
         # Rename columns in stocks
         rename_cols = {c: self.descript.getFullNameFromRealName([c])[0] for c in self.stocks.columns}
         self.stocks = self.stocks.rename(columns=rename_cols)
         self.stocks = self.stocks.round(2)
+        
+        # Rename columns in stocks
+        rename_cols = {c: self.descript.getFullNameFromRealName([c])[0] for c in self.var_diaria.columns}
+        self.var_diaria = self.var_diaria.rename(columns=rename_cols)
+        self.var_diaria = self.var_diaria.round(2)
         
         # Agrega el CER
         if len(filename_cer) > 0:
@@ -171,4 +183,19 @@ class dataContent():
         if base_100:
             for col in df.columns:
                 df[col] = 100*(df[col]/df[col].values[0])
+        return df
+    
+    def getVarDiaria(self,
+                     where: list,
+                     currency: list,
+                     filtro_fecha=dict()
+                     ):
+        listColumns = list()
+        for col in self.var_diaria.columns:
+            r = col.split('_')
+            if r[0] in where and r[4] in currency:
+                listColumns.append(col)
+        df = self.var_diaria[listColumns]
+        if 'start' in filtro_fecha and 'end' in filtro_fecha:
+            df = df[(df.index >= filtro_fecha['start']) & (df.index <= filtro_fecha['end'])]
         return df

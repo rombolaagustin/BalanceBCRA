@@ -8,7 +8,6 @@
 # Libraries
 import streamlit as st
 import json
-import datetime 
 import pandas as pd
 import plotly.express as px
 
@@ -17,12 +16,11 @@ from src.funciones import selectElementsDict
 from src.dataContent import dataContent
 
 # CONSTANTES
-from src.mapping.mapBalanceBCRA import SHEET_NAMES
-from src.mapping.mapBalanceBCRA import TIPOS
 from src.mapping.mapBalanceBCRA import CURRENCIES
 from src.mapping.mapBalanceBCRA import SECTORS
 from src.mapping.mapBalanceBCRA import FUENTE
 from src.mapping.filtrosTemporales import FILTROS_TEMPORALES, FECHAS_ESPECIALES
+from src.mapping.filtrosTemporales import MONTHS
 from src.mapping.fullColumnsNames import FULL_COLUMNS_NAMES
 
 # Cargar los nombres de los archivos
@@ -151,6 +149,27 @@ with st.container(border=True):
         y=sel_cols_itcrm, 
         title='Índices de tipo de Cambio Real')
     st.plotly_chart(fig_itcrm)
+
+# 3) OPERACIONES EN PESOS
+
+st.header('3. Operaciones en pesos argentinos (ARS)')
+
+tab_var_diaria, tab_acum_mensual, tab_acumulada_ytd, tab_var_custom = st.tabs(["Variación Diaria", "Acumulada Mensual", "Acumulada YTD", "Personalizada"])
+
+with tab_var_diaria:
+    st.header("Variación Diaria")
+
+with tab_acum_mensual:
+    st.header(f"Variación desde incio del mes de {MONTHS[maxDate.month]}")
+
+with tab_acumulada_ytd:
+    st.header(f"Variación desde incio del año {maxDate.year}")
+
+with tab_var_custom:
+    st.header("Variación personalizada")
+
+#st.dataframe(data.getVarDiaria(where=['baseMonetaria'], currency=['ars']))
+#st.dataframe(data.getVarDiaria(where=['reservas'], currency=['usd']))
 
 # DISCLAIMER
 st.sidebar.caption('Los datos utilizados provienen exclusivamente de la hoja del balance y de índices publicados por Banco Central de la República Argentina ._')

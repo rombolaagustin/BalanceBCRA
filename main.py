@@ -22,6 +22,7 @@ from src.mapping.mapBalanceBCRA import FUENTE
 from src.mapping.filtrosTemporales import FILTROS_TEMPORALES, FECHAS_ESPECIALES
 from src.mapping.filtrosTemporales import MONTHS
 from src.mapping.fullColumnsNames import FULL_COLUMNS_NAMES
+from src.mapping.metrics import cols_metrics_diaria
 
 # Cargar los nombres de los archivos
 with open('data/configArchivos.json', 'r') as file:
@@ -150,18 +151,37 @@ with st.container(border=True):
         title='Índices de tipo de Cambio Real')
     st.plotly_chart(fig_itcrm)
 
-# 3) OPERACIONES EN PESOS
+# 3) VARIACIONES
 
-st.header('3. Operaciones en pesos argentinos (ARS)')
+st.header('3. Variaciones')
 
 tab_var_diaria, tab_acum_mensual, tab_acumulada_ytd, tab_var_custom = st.tabs(["Variación Diaria", "Acumulada Mensual", "Acumulada YTD", "Personalizada"])
 
 with tab_var_diaria:
+    n_cols = 3
     st.header("Variación Diaria")
-
+    # BASE MONETARIA
+    st.subheader('Base Monetaria')
+    
+    stocksDiariaARSDict = {
+        'where': ['baseMonetaria'],
+        'sector': ['total'], 
+        'tipo':['stock'], 
+        'currency': ['ars'], 
+    }
+    df_diaria = data.getVarDiaria(where=['baseMonetaria'], currency=['ars'])
+    df_diaria_stocks = data.getStocks(**stocksDiariaARSDict)
+    colsDiaria = st.columns(n_cols)
+    iCol = 0
+    for col, d in cols_metrics_diaria.items():    
+        colsDiaria[iCol].metric(label=d['name'], value=df_diaria_stocks[d['where_stock']].values[-1], delta=df_diaria[col].values[-1], delta_color='inverse')
+        iCol += 1 if iCol < n_cols else 0
+    # RESERVAS
+    st.subheader('Reservas')
+    
 with tab_acum_mensual:
     st.header(f"Variación desde incio del mes de {MONTHS[maxDate.month]}")
-
+    
 with tab_acumulada_ytd:
     st.header(f"Variación desde incio del año {maxDate.year}")
 

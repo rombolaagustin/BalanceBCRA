@@ -16,7 +16,6 @@ from src.funciones import downloadFile
 from src.funciones import selectElementsDict
 from src.dataContent import dataContent
 
-
 # CONSTANTES
 from src.mapping.mapBalanceBCRA import SHEET_NAMES
 from src.mapping.mapBalanceBCRA import TIPOS
@@ -24,17 +23,19 @@ from src.mapping.mapBalanceBCRA import CURRENCIES
 from src.mapping.mapBalanceBCRA import SECTORS
 from src.mapping.mapBalanceBCRA import FUENTE
 from src.mapping.filtrosTemporales import FILTROS_TEMPORALES, FECHAS_ESPECIALES
+from src.mapping.fullColumnsNames import FULL_COLUMNS_NAMES
+
+# Cargar los nombres de los archivos
+with open('data/configArchivos.json', 'r') as file:
+    # Carga el contenido del archivo JSON en un diccionario
+    files = json.load(file)
 
 # Config de la pagina
 st.set_page_config(page_title="Balance del BCRA")
 st.title('Balance del B.C.R.A.')
 # st.write('<TODO DESCRIPCION DE LA PAGINA>')
 
-with open('data/configArchivos.json', 'r') as file:
-    # Carga el contenido del archivo JSON en un diccionario
-    files = json.load(file)
-
-### DESCARGA AUTOMATICA DE LOS ARCHIVOS DEL BCRA ###
+# Cache para descargar los archivos
 @st.cache_resource(ttl=3600/2)
 def downloadAllFiles(files: dict):
     for k in files.keys():
@@ -52,14 +53,16 @@ def cargarContenido(filenames):
     data.generarITCRM(files['itcrm']['filename'])
     return data
 
+#### SE DESCARGAN LOS ARCHIVOS Y SE PROCESA LA HOJA DE BALANCE ####
 with st.spinner('Procesando la hoja de balance del BCRA...'):
     downloadAllFiles(files)
     data = cargarContenido(files)
 
+# Se obtienen las fechas min y max
 minDate, maxDate = data.getRangeDate()
 
 # Se genera la sidebar
-st.sidebar.header("Secciones")
+st.sidebar.header("Información")
 st.sidebar.write('Información hasta ', maxDate)
 
 # 1) SECCION - VISUALIZADOR DE STOCKS
@@ -99,39 +102,42 @@ with st.container(border=True):
                 filtro_fecha = {'start': pd.to_datetime(startDate), 'end': pd.to_datetime(endDate)}
         else:
             filtro_fecha = FECHAS_ESPECIALES[FILTROS_TEMPORALES[customFecha]]
-    #st.divider()
     
     # Base 100
     base_100 = st.checkbox("Base 100", value=False)
 
-# Data de Stocks
+# Dataframe de Stocks
 df_stocks = data.getStocks(**customStocks, filtro_fecha=filtro_fecha, base_100=base_100)
-st.dataframe(df_stocks)
+df_stocks_show = df_stocks.copy().rename(columns=FULL_COLUMNS_NAMES)
+st.dataframe(df_stocks_show)
+
 # Graficador
 show_chart = st.checkbox('Graficar', value=True)
-
 with st.container(border=True):
-    
     # Verificar si se debe mostrar el gráfico
     if show_chart:
         # Multiselect para elegir las columnas a graficar
-        sel_cols = st.multiselect('Selecciona las columnas', df_stocks.columns)
+        cols_plot = [FULL_COLUMNS_NAMES[c] for c in df_stocks.columns]
+        sel_cols_human = st.multiselect('Selecciona las columnas', cols_plot)
         use_CER = st.checkbox('Deflactar usando CER', value=False)
-        if sel_cols:
+        # sel_cols_human es para visualizar de forma comoda para los usuarios
+        if sel_cols_human:
+            sel_cols = selectElementsDict(FULL_COLUMNS_NAMES, sel_cols_human, False)
             if use_CER and 'indices_CER_total_indice_ars' in df_stocks.columns:
                 df_stocks_plot = df_stocks.copy()
                 for colPlot in sel_cols:
                     if colPlot.split('_')[4] == 'ars': # Solo lo nominado en ars
-                        
                         df_stocks_plot[colPlot] = (df_stocks_plot[colPlot]/df_stocks_plot['indices_CER_total_indice_ars'])*df_stocks_plot['indices_CER_total_indice_ars'].max()
             else:
                 df_stocks_plot = df_stocks[sel_cols].copy()
-            st.subheader('Gráfico')
-            st.line_chart(
-                data=df_stocks_plot,
-                x=None, # None use the index
-                y=sel_cols,
-            )
+            # Rename para visualizar con el nombre full
+            df_stocks_plot = df_stocks_plot.rename(columns=FULL_COLUMNS_NAMES)
+            fig_stocks = px.line(
+                df_stocks_plot,
+                x=None, 
+                y=sel_cols_human, 
+                title='Gráfico de Stocks')
+            st.plotly_chart(fig_stocks)
         else:
             st.warning('Se debe seleccionar al menos una serie para graficar')
 
@@ -139,17 +145,13 @@ with st.container(border=True):
 st.header('2. ITCRM (Índice de Tipo de Cambio Real Multilateral)')
 with st.container(border=True):
     sel_cols_itcrm = st.multiselect('Índices de tipo de cambio', data.itcrm.columns, default=data.itcrm.columns[0])
-    # st.line_chart(
-    #                 data=data.itcrm,
-    #                 x=None, # None use the index
-    #                 y=sel_cols_itcrm,
-    #             )
-    fig = px.line(
+    fig_itcrm = px.line(
         data.itcrm, 
         x=None, 
         y=sel_cols_itcrm, 
         title='Tipo de Cambio Real')
-    st.plotly_chart(fig)
+    st.plotly_chart(fig_itcrm)
+
 # DISCLAIMER
 st.caption('_Toda la información que se muestra proviene exclusivamente de la hoja del balance del Banco Central de la República Argentina._')
 

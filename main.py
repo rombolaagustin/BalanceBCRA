@@ -10,6 +10,7 @@ import streamlit as st
 import json
 import datetime 
 import pandas as pd
+import plotly.express as px
 
 from src.funciones import downloadFile
 from src.funciones import selectElementsDict
@@ -34,7 +35,7 @@ with open('data/configArchivos.json', 'r') as file:
     files = json.load(file)
 
 ### DESCARGA AUTOMATICA DE LOS ARCHIVOS DEL BCRA ###
-@st.cache_resource
+@st.cache_resource(ttl=3600/2)
 def downloadAllFiles(files: dict):
     for k in files.keys():
         downloadFile(
@@ -45,13 +46,15 @@ def downloadAllFiles(files: dict):
             )
 
 # Carga el contenido en Cache
-@st.cache_data(show_spinner=False)
-def cargarContenido(filename: str, filename_cer = ''):
-    return dataContent(filename, filename_cer)
+@st.cache_data(show_spinner=False, ttl=3600/2) # Media Hora 
+def cargarContenido(filenames):
+    data = dataContent(files['balance_sheet']['filename'], files['cer']['filename'])
+    data.generarITCRM(files['itcrm']['filename'])
+    return data
 
 with st.spinner('Procesando la hoja de balance del BCRA...'):
     downloadAllFiles(files)
-    data = cargarContenido(files['balance_sheet']['filename'], files['cer']['filename'])
+    data = cargarContenido(files)
 
 minDate, maxDate = data.getRangeDate()
 
@@ -131,8 +134,22 @@ with st.container(border=True):
             )
         else:
             st.warning('Se debe seleccionar al menos una serie para graficar')
-    
 
+# 2) SECCION - ITCRM PLOTS
+st.header('2. ITCRM (Índice de Tipo de Cambio Real Multilateral)')
+with st.container(border=True):
+    sel_cols_itcrm = st.multiselect('Índices de tipo de cambio', data.itcrm.columns, default=data.itcrm.columns[0])
+    # st.line_chart(
+    #                 data=data.itcrm,
+    #                 x=None, # None use the index
+    #                 y=sel_cols_itcrm,
+    #             )
+    fig = px.line(
+        data.itcrm, 
+        x=None, 
+        y=sel_cols_itcrm, 
+        title='Tipo de Cambio Real')
+    st.plotly_chart(fig)
 # DISCLAIMER
 st.caption('_Toda la información que se muestra proviene exclusivamente de la hoja del balance del Banco Central de la República Argentina._')
 

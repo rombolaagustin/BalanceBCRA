@@ -132,6 +132,22 @@ class dataContent():
         self.stocks['agregadosMonetarios_baseMonetariaAmpliada_total_stock_ars'] = self.stocks['baseMonetaria_total_total_stock_ars'] + self.stocks['agregadosMonetarios_pasivosRemuneradores_total_stock_ars']
         self.stocks['agregadosMonetarios_baseMonetariaVSPasivosRemunerados_total_indice_ars'] = self.stocks['agregadosMonetarios_pasivosRemuneradores_total_stock_ars'] / self.stocks['baseMonetaria_total_total_stock_ars']
         self.stocks['agregadosMonetarios_m3_total_stock_ars'] = self.stocks['baseMonetaria_total_total_stock_ars'] + self.stocks['depositos_depositos_total_stock_ars'] 
+    
+    def generarITCRM(self, filename: str):
+        print('Generando información del ITCRM')
+        df_itcrm = pd.read_excel(
+                engine='openpyxl',
+                io='data/ITCRMSerie.xlsx',
+                sheet_name='ITCRM y bilaterales',
+                skiprows=1,
+                )
+        df_itcrm = df_itcrm.rename(columns={'Período': 'date'})
+        df_itcrm['date'] = pd.to_datetime(df_itcrm['date'], format='%d/%m/%Y', errors='coerce')
+        df_itcrm = df_itcrm.dropna(subset=['date'])
+        df_itcrm.index = df_itcrm['date']
+        del df_itcrm['date']
+        self.itcrm = df_itcrm
+
     def getRangeDate(self):
         return self.stocks.index.min().date(), self.stocks.index.max().date()
 

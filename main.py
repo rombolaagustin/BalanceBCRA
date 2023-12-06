@@ -136,7 +136,7 @@ with st.container(border=True):
                 df_stocks_plot,
                 x=None, 
                 y=sel_cols_human, 
-                title='Gráfico de Stocks')
+                title='Gráfico de Stocks (Expresado en Millones de ARS)')
             st.plotly_chart(fig_stocks)
         else:
             st.warning('Se debe seleccionar al menos una serie para graficar')
@@ -149,10 +149,10 @@ with st.container(border=True):
         data.itcrm, 
         x=None, 
         y=sel_cols_itcrm, 
-        title='Tipo de Cambio Real')
+        title='Índices de tipo de Cambio Real')
     st.plotly_chart(fig_itcrm)
 
 # DISCLAIMER
-st.caption('_Toda la información que se muestra proviene exclusivamente de la hoja del balance del Banco Central de la República Argentina._')
+st.sidebar.caption('Los datos utilizados provienen exclusivamente de la hoja del balance y de índices publicados por Banco Central de la República Argentina ._')
 
 

@@ -7,3 +7,6 @@ data/*.xlsx
 *.ipynb
 .DS_Store
 *.~lock*
+.streamlit/secrets.toml
+.devcontainer
+plots/*

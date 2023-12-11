@@ -14,6 +14,7 @@ import plotly.express as px
 from src.funciones import downloadFile
 from src.funciones import selectElementsDict
 from src.dataContent import dataContent
+from datetime import datetime, timedelta 
 
 # CONSTANTES
 from src.mapping.mapBalanceBCRA import CURRENCIES
@@ -191,7 +192,20 @@ with tab_var_custom:
 #st.dataframe(data.getVarDiaria(where=['baseMonetaria'], currency=['ars']))
 #st.dataframe(data.getVarDiaria(where=['reservas'], currency=['usd']))
 
-# DISCLAIMER
-st.sidebar.caption('Los datos utilizados provienen exclusivamente de la hoja del balance y de índices publicados por Banco Central de la República Argentina ._')
+if st.secrets['TEST'] == 'True':
+    st.sidebar.warning('TEST MODE ON')
+    # filtro_fecha_plots = {
+    #     'start': pd.to_datetime(datetime.now() - timedelta(days=364)), 
+    #     'end': pd.to_datetime(datetime.now())
+    # }
+    # customStocksPlots = {
+    # }
+    def downloadInfo(data):
+        data.stocks.to_csv('plots/stocks.csv')
+        data.var_diaria.to_csv('plots/var_diaria.csv')
+    st.sidebar.button("Descargar data frames", on_click=downloadInfo(data))
 
+
+# DISCLAIMER
+st.sidebar.caption('Los datos utilizados provienen exclusivamente de la hoja del balance y de índices publicados por Banco Central de la República Argentina .')
 

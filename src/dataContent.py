@@ -183,7 +183,7 @@ class dataContent():
         if base_100:
             for col in df.columns:
                 df[col] = 100*(df[col]/df[col].values[0])
-        return df
+        return df.sort_index(ascending=False)
     
     def getVarDiaria(self,
                      where: list,

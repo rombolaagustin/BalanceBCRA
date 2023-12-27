@@ -229,11 +229,14 @@ with tab_var_custom:
 def downloadInfo(data):
     data.stocks.to_csv('plots/stocks.csv')
     data.var_diaria.to_csv('plots/var_diaria.csv')
+    print('Data descargada en plots/')
 try:   
     if st.secrets['TEST'] == 'True':
-        st.sidebar.warning('TEST MODE ON')
-        st.sidebar.write('hola')
-        st.sidebar.button("Descargar data frames", on_click=downloadInfo(data))
+        st.sidebar.warning('TEST MODE ON') # Create a button
+        button_download_test = st.sidebar.button("Descargar data frames")
+        if button_download_test:
+            downloadInfo(data)
+        
 except:
     pass
 

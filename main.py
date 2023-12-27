@@ -20,7 +20,9 @@ from datetime import datetime, timedelta
 from src.mapping.mapBalanceBCRA import CURRENCIES
 from src.mapping.mapBalanceBCRA import SECTORS
 from src.mapping.mapBalanceBCRA import FUENTE
-from src.mapping.filtrosTemporales import FILTROS_TEMPORALES, FECHAS_ESPECIALES
+from src.mapping.filtrosTemporales import FILTROS_TEMPORALES
+from src.mapping.filtrosTemporales import FECHAS_ESPECIALES
+from src.mapping.filtrosTemporales import VARIACIONES
 from src.mapping.filtrosTemporales import MONTHS
 from src.mapping.fullColumnsNames import FULL_COLUMNS_NAMES
 from src.mapping.metrics import cols_metrics_diaria
@@ -124,11 +126,13 @@ with st.container(border=True):
         if sel_cols_human:
             sel_cols = selectElementsDict(FULL_COLUMNS_NAMES, sel_cols_human, False)
             if use_CER and 'indices_CER_total_indice_ars' in df_stocks.columns:
+                title_plot_stocks = f'Gráfico de Stocks (Expresado en Millones de ARS del {maxDate})'
                 df_stocks_plot = df_stocks.copy()
                 for colPlot in sel_cols:
                     if colPlot.split('_')[4] == 'ars': # Solo lo nominado en ars
                         df_stocks_plot[colPlot] = (df_stocks_plot[colPlot]/df_stocks_plot['indices_CER_total_indice_ars'])*df_stocks_plot['indices_CER_total_indice_ars'].max()
             else:
+                title_plot_stocks = f'Gráfico de Stocks (Expresado en Millones de ARS nominales)'
                 df_stocks_plot = df_stocks[sel_cols].copy()
             # Rename para visualizar con el nombre full
             df_stocks_plot = df_stocks_plot.rename(columns=FULL_COLUMNS_NAMES)
@@ -136,7 +140,8 @@ with st.container(border=True):
                 df_stocks_plot,
                 x=None, 
                 y=sel_cols_human, 
-                title='Gráfico de Stocks (Expresado en Millones de ARS)')
+                title=title_plot_stocks
+                )
             st.plotly_chart(fig_stocks)
         else:
             st.warning('Se debe seleccionar al menos una serie para graficar')
@@ -152,9 +157,36 @@ with st.container(border=True):
         title='Índices de tipo de Cambio Real')
     st.plotly_chart(fig_itcrm)
 
-# 3) VARIACIONES
+## 3) VARIACIONES PORCENTALES
+    
+st.header('3. Variaciones Porcentuales')
+with st.container(border=True):
+    days_custom = st.selectbox('Variación:', VARIACIONES.keys())
+    if days_custom == 'Personalizado':
+        days_especial = st.number_input('Días de variación:', min_value=1, max_value=20*365)
+        df_varcustom = data.getVarCustom(days=days_especial)
+        df_varcustom_show = df_varcustom.rename(columns=FULL_COLUMNS_NAMES)
+    else:
+        df_varcustom = data.getVarCustom(days=VARIACIONES[days_custom])
+        df_varcustom_show = df_varcustom.rename(columns=FULL_COLUMNS_NAMES)
+    st.dataframe(df_varcustom_show)
+    cols_plot_var = [FULL_COLUMNS_NAMES[c] for c in df_varcustom.columns]
+    sel_cols_human_var = st.multiselect('Selecciona para graficar', cols_plot_var)
+    if sel_cols_human_var:
+        sel_cols_var = selectElementsDict(FULL_COLUMNS_NAMES, sel_cols_human_var, False)
+        df_varcustom_plot = df_varcustom[sel_cols_var].copy()
+        df_varcustom_plot = df_varcustom_plot.rename(columns=FULL_COLUMNS_NAMES)
+        fig_varcustom = px.line(
+            df_varcustom_plot,
+            x=None, 
+            y=sel_cols_human_var, 
+            title='Variaciones'
+            )
+        st.plotly_chart(fig_varcustom)
 
-st.header('3. Variaciones')
+# 4) VARIACIONES EN LA BASE MONETARIA
+
+st.header('4. Operaciones del BCRA')
 
 tab_var_diaria, tab_acum_mensual, tab_acumulada_ytd, tab_var_custom = st.tabs(["Variación Diaria", "Acumulada Mensual", "Acumulada YTD", "Personalizada"])
 
@@ -191,6 +223,10 @@ with tab_var_custom:
 
 #st.dataframe(data.getVarDiaria(where=['baseMonetaria'], currency=['ars']))
 #st.dataframe(data.getVarDiaria(where=['reservas'], currency=['usd']))
+
+
+
+# TEST --->
 
 try:   
     if st.secrets['TEST'] == 'True':

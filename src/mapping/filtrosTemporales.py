@@ -66,3 +66,12 @@ FECHAS_ESPECIALES = {
         'end': datetime(year=2022, month=7, day=4),
     },
 }
+
+# VARIACIONES TEMPORALES
+
+VARIACIONES = {
+    'Anual': 365,
+    'Mensual': 30,
+    'Semanal': 7,
+    'Personalizado': None,
+}

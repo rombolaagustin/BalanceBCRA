@@ -3,7 +3,9 @@ import warnings
 
 from .mapping.mapBalanceBCRA import COLUMNS_NAMES
 from .mapping.mapBalanceBCRA import SHEET_NAMES
-
+from .mapping.mapBalanceBCRA import CURRENCIES
+from .mapping.mapBalanceBCRA import SECTORS
+from .mapping.mapBalanceBCRA import FUENTE
 class descriptObj():
     def __init__(self):
         aux = list()
@@ -83,11 +85,8 @@ class dataContent():
                     self.__data_raw[data_name][col_name] = pd.to_numeric(self.__data_raw[data_name][col_name].replace(',', '', regex=True), errors='coerce')
                     if pd.isna(self.__data_raw[data_name][col_name].iloc[0]):
                         # replace the first NaN value with 0
-                        #self.__data_raw[data_name][col_name].iloc[0] = 0
                         self.__data_raw[data_name].loc[0, (data_name, col_name)] = 0
-                    #self.__data_raw[data_name][col_name] = self.__data_raw[data_name][col_name].fillna(method='ffill')
                     self.__data_raw[data_name][col_name] = self.__data_raw[data_name][col_name].ffill()
-
             # Filling data
             self.__data_raw[data_name].index = self.__data_raw[data_name]['date']
             del self.__data_raw[data_name]['date']
@@ -114,7 +113,7 @@ class dataContent():
         self.stocks = self.stocks.rename(columns=rename_cols)
         self.stocks = self.stocks.round(2)
         
-        # Rename columns in stocks
+        # Rename columns in var_diaria
         rename_cols = {c: self.descript.getFullNameFromRealName([c])[0] for c in self.var_diaria.columns}
         self.var_diaria = self.var_diaria.rename(columns=rename_cols)
         self.var_diaria = self.var_diaria.round(2)
@@ -199,3 +198,15 @@ class dataContent():
         if 'start' in filtro_fecha and 'end' in filtro_fecha:
             df = df[(df.index >= filtro_fecha['start']) & (df.index <= filtro_fecha['end'])]
         return df
+    
+    def getVarCustom(self,
+                     days: int):
+        # Se obtiene el df de stocks completo
+        df_varcustom = self.getStocks(
+            where=FUENTE.keys(),
+            sector=SECTORS.keys(),
+            tipo=['stock', 'indice'],
+            currency=CURRENCIES.keys(),
+        )
+        df_varcustom = df_varcustom.pct_change(periods=days, freq='D') * 100
+        return df_varcustom

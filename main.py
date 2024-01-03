@@ -14,7 +14,7 @@ import plotly.express as px
 from src.funciones import downloadFile
 from src.funciones import selectElementsDict
 from src.dataContent import dataContent
-from datetime import datetime, timedelta 
+from datetime import datetime, timedelta, date
 
 # CONSTANTES
 from src.mapping.mapBalanceBCRA import CURRENCIES
@@ -188,38 +188,68 @@ with st.container(border=True):
 
 st.header('4. Operaciones del BCRA')
 
-tab_var_diaria, tab_acum_mensual, tab_acumulada_ytd, tab_var_custom = st.tabs(["Variación Diaria", "Acumulada Mensual", "Acumulada YTD", "Personalizada"])
+tvar1, tvar2, tvar3, tvar4, tvar5 = st.tabs(["Variación Diaria", "Acumulada Mensual", "Acumulada Anual", "Interanual", "Personalizada"])
 
-with tab_var_diaria:
-    n_cols = 3
-    st.header("Variación Diaria")
-    # BASE MONETARIA
-    st.subheader('Base Monetaria')
-    
-    stocksDiariaARSDict = {
-        'where': ['baseMonetaria'],
-        'sector': ['total'], 
-        'tipo':['stock'], 
-        'currency': ['ars'], 
-    }
-    df_diaria = data.getVarDiaria(where=['baseMonetaria'], currency=['ars'])
-    df_diaria_stocks = data.getStocks(**stocksDiariaARSDict)
-    colsDiaria = st.columns(n_cols)
-    iCol = 0
-    for col, d in cols_metrics_diaria.items():    
-        colsDiaria[iCol].metric(label=d['name'], value=df_diaria_stocks[d['where_stock']].values[-1], delta=df_diaria[col].values[-1], delta_color='inverse')
-        iCol += 1 if iCol < n_cols else 0
-    # RESERVAS
-    st.subheader('Reservas')
-    
-with tab_acum_mensual:
-    st.header(f"Variación desde incio del mes de {MONTHS[maxDate.month]}")
-    
-with tab_acumulada_ytd:
-    st.header(f"Variación desde incio del año {maxDate.year}")
+def makeTabVar(
+        subheader: str,
+        days: int,
+        ):  
+    col1, col2, col3, col4 = st.columns(4)
+    st.subheader(subheader, divider='green')
 
-with tab_var_custom:
-    st.header("Variación personalizada")
+    if days == -1: # Custom Date
+        init_custom = st.date_input(
+            label='Ingrese fecha de inicio:', 
+            min_value=minDate, 
+            max_value=maxDate,
+            value=maxDate-timedelta(days=7),
+            )
+        days_custom = (maxDate - init_custom).days
+    else:
+        days_custom = days
+    df_var = data.getVarDiariaAcumCustom(days=days_custom)
+    df_var_pcte = data.getVarCustom(days=days_custom)
+    st.dataframe(df_var)
+    st.write(df_var.columns)
+    st.subheader(':blue[Base Monetaria]')
+    with col1:
+        st.metric(
+            label='Base Monetaria', 
+            value=df_var['baseMonetaria_baseMonetaria_total_varDiaria_ars'].values[-1],
+            delta=f"{df_var_pcte['baseMonetaria_total_total_stock_ars'].values[-1]}%",
+        )
+
+    st.subheader(':blue[Reservas]')
+
+
+with tvar1:
+    makeTabVar(
+        subheader=f"Variación Diaria",
+        days=1,
+    )
+with tvar2:
+    makeTabVar(
+        subheader=f"Variación desde incio del mes de {MONTHS[maxDate.month]}",
+        days=maxDate.day,
+    )
+with tvar3:
+    ytd_days = (maxDate - date(maxDate.year, 1, 1)).days
+    makeTabVar(
+        subheader=f"Variación desde inicio del año {maxDate.year}",
+        days=ytd_days,
+    )
+    
+with tvar4:
+    makeTabVar(
+        subheader=f"Variación interanual desde {maxDate-timedelta(days=365)} hasta {maxDate}",
+        days=365,
+    )
+
+with tvar5:
+    makeTabVar(
+        subheader="Variación personalizada",
+        days=-1,
+        )
 
 #st.dataframe(data.getVarDiaria(where=['baseMonetaria'], currency=['ars']))
 #st.dataframe(data.getVarDiaria(where=['reservas'], currency=['usd']))

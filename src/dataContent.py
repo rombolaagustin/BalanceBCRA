@@ -1,5 +1,5 @@
 import pandas as pd
-import warnings
+from datetime import timedelta
 
 from .mapping.mapBalanceBCRA import COLUMNS_NAMES
 from .mapping.mapBalanceBCRA import SHEET_NAMES
@@ -209,4 +209,19 @@ class dataContent():
             currency=CURRENCIES.keys(),
         )
         df_varcustom = df_varcustom.pct_change(periods=days, freq='D') * 100
+        return df_varcustom
+
+    def getVarDiariaAcumCustom(
+            self,
+            days: int,
+    ):
+        df_varcustom = self.getVarDiaria(
+            where=FUENTE.keys(),
+            currency=CURRENCIES.keys(),
+        )
+        maxDate = df_varcustom.index.max()
+        minDate = maxDate - timedelta(days=days)
+        df_varcustom = df_varcustom[df_varcustom.index > minDate]
+        for col in df_varcustom.columns:
+            df_varcustom[col] = df_varcustom[col].cumsum()
         return df_varcustom

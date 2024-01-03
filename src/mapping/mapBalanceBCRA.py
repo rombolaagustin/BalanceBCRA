@@ -52,7 +52,7 @@ COLUMNS_NAMES = {
         'date',
         'delete1',
         'baseMonetaria_total_varDiaria_ars',
-        'divisasSectorPublico_total_varDiaria_ars',
+        'divisasSectorPrivado_total_varDiaria_ars',
         'divisasTesoroNacional_total_varDiaria_ars',
         'adelantosTesoro_total_varDiaria_ars',
         'transfUtilidades_total_varDiaria_ars',

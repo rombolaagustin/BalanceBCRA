@@ -139,7 +139,7 @@ class dataContent():
     def generarEspeciales(self):
         self.stocks['agregadosMonetarios_CirculacionMonetaria_total_stock_ars'] = self.stocks['baseMonetaria_billetesPublico_total_stock_ars'] + self.stocks['baseMonetaria_billetesEntidades_total_stock_ars'] 
         self.stocks['agregadosMonetarios_ledivUSDexpEnARS_total_stock_ars'] = self.stocks['reservas_tipoDeCambio_total_indice_ars'] * self.stocks['instrumentosBCRA_lebacUsdLediv_total_stock_usd'] 
-        self.stocks['agregadosMonetarios_pasivosRemuneradores_total_stock_ars'] = self.stocks['instrumentosBCRA_pasesPasivos_total_stock_ars'] + self.stocks['instrumentosBCRA_pasesPasivosFCI_total_stock_ars'] + self.stocks['instrumentosBCRA_leliq_total_stock_ars'] + self.stocks['instrumentosBCRA_lebac_total_stock_ars'] + self.stocks['agregadosMonetarios_ledivUSDexpEnARS_total_stock_ars']
+        self.stocks['agregadosMonetarios_pasivosRemuneradores_total_stock_ars'] = self.stocks['instrumentosBCRA_pasesPasivos_total_stock_ars'] + self.stocks['instrumentosBCRA_pasesPasivosFCI_total_stock_ars'] + self.stocks['instrumentosBCRA_leliq_total_stock_ars'] + self.stocks['instrumentosBCRA_lebac_total_stock_ars']
         self.stocks['agregadosMonetarios_baseMonetariaAmpliada_total_stock_ars'] = self.stocks['baseMonetaria_total_total_stock_ars'] + self.stocks['agregadosMonetarios_pasivosRemuneradores_total_stock_ars']
         self.stocks['agregadosMonetarios_baseMonetariaVSPasivosRemunerados_total_indice_ars'] = self.stocks['agregadosMonetarios_pasivosRemuneradores_total_stock_ars'] / self.stocks['baseMonetaria_total_total_stock_ars']
         self.stocks['agregadosMonetarios_m3_total_stock_ars'] = self.stocks['baseMonetaria_total_total_stock_ars'] + self.stocks['depositos_depositos_total_stock_ars'] 

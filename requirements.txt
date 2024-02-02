@@ -35,10 +35,10 @@ matplotlib==3.8.2
 matplotlib-inline==0.1.6
 mdurl==0.1.2
 nest-asyncio==1.5.8
-numpy==1.26.2
+numpy==1.26.3
 openpyxl==3.1.2
 packaging==23.2
-pandas==2.1.4
+pandas==2.2.0
 parso==0.8.3
 pexpect==4.9.0
 Pillow==10.1.0
@@ -64,7 +64,7 @@ seaborn==0.13.0
 six==1.16.0
 smmap==5.0.1
 stack-data==0.6.3
-streamlit==1.29.0
+streamlit==1.31.0
 tenacity==8.2.3
 toml==0.10.2
 toolz==0.12.0

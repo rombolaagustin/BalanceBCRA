@@ -70,7 +70,11 @@ st.sidebar.write('Información hasta ', maxDate)
 # 1) SECCION - VISUALIZADOR DE STOCKS
 st.header('1. Stocks')
 with st.container(border=True):
-    whereSel = st.multiselect('Fuente de información', FUENTE.values(), default=['Base Monetaria', 'Indices'])
+    whereSel = st.multiselect(
+        label='Fuente de información', 
+        options=FUENTE.values(), 
+        default=['Base Monetaria', 'Indices', 'Agregados Monetarios', 'Reservas Internacionales'],
+        )
     sectorSel = st.multiselect('Sector', SECTORS.values(), default='Total')
     currencySel = st.multiselect('Moneda', CURRENCIES.values(), default='(ARS) Pesos Argentinos')
     customStocks = {
@@ -121,16 +125,26 @@ with st.container(border=True):
         # Multiselect para elegir las columnas a graficar
         cols_plot = [FULL_COLUMNS_NAMES[c] for c in df_stocks.columns]
         sel_cols_human = st.multiselect('Selecciona las columnas', cols_plot)
-        use_CER = st.checkbox('Deflactar usando CER', value=False)
+        #use_CER = st.checkbox('Deflactar usando CER', value=False)
+        kind_index = st.selectbox(
+            label='Moneda para expresar variables', 
+            options=['ARS Nominales', 'ARS deflactados por CER', 'Expresado en TC Oficial'], 
+            )
         # sel_cols_human es para visualizar de forma comoda para los usuarios
         if sel_cols_human:
             sel_cols = selectElementsDict(FULL_COLUMNS_NAMES, sel_cols_human, False)
-            if use_CER and 'indices_CER_total_indice_ars' in df_stocks.columns:
+            if kind_index == 'ARS deflactados por CER' and 'indices_CER_total_indice_ars' in df_stocks.columns:
                 title_plot_stocks = f'Gráfico de Stocks (Expresado en Millones de ARS del {maxDate})'
                 df_stocks_plot = df_stocks.copy()
                 for colPlot in sel_cols:
                     if colPlot.split('_')[4] == 'ars': # Solo lo nominado en ars
                         df_stocks_plot[colPlot] = (df_stocks_plot[colPlot]/df_stocks_plot['indices_CER_total_indice_ars'])*df_stocks_plot['indices_CER_total_indice_ars'].max()
+            elif kind_index == 'Expresado en TC Oficial' and 'reservas_tipoDeCambio_total_indice_ars' in df_stocks.columns:
+                title_plot_stocks = f'Gráfico de Stocks (Expresado en TC Oficial)'
+                df_stocks_plot = df_stocks.copy()
+                for colPlot in sel_cols:
+                    if colPlot.split('_')[4] == 'ars': # Solo lo nominado en ars
+                        df_stocks_plot[colPlot] = (df_stocks_plot[colPlot]/df_stocks_plot['reservas_tipoDeCambio_total_indice_ars'])
             else:
                 title_plot_stocks = f'Gráfico de Stocks (Expresado en Millones de ARS nominales)'
                 df_stocks_plot = df_stocks[sel_cols].copy()
